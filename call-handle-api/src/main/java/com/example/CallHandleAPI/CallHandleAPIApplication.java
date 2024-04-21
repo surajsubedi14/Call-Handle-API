@@ -1,13 +1,13 @@
-package org.example.callhandleapi;
+package com.example.CallHandleAPI;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class CallHandleApiApplication {
+public class CallHandleAPIApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(CallHandleApiApplication.class, args);
+        SpringApplication.run(CallHandleAPIApplication.class, args);
     }
 
 }

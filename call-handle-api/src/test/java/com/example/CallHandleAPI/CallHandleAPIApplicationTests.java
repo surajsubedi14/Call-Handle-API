@@ -1,10 +1,10 @@
-package org.example.callhandleapi;
+package com.example.CallHandleAPI;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class CallHandleApiApplicationTests {
+class CallHandleAPIApplicationTests {
 
     @Test
     void contextLoads() {
