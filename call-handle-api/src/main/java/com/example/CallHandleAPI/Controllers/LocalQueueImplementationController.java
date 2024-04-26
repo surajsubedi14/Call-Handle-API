@@ -170,12 +170,14 @@ public class LocalQueueImplementationController {
             PatientDoctorDTO patientDoctorDTO1 = globalQueueImplementationController.PromoteToLocalQueue(patientDoctorDTO);
 
             if(patientDoctorDTO1.getPatientId() == null) {
-                ResponseEntity.ok("Nothing in Global queue to promote to local queue");
+                return ResponseEntity.ok("Nothing in Global queue to promote to local queue");
             }
 
             localQueue.getLocalQueue().get(patientDoctorDTO.getDoctorId()).add(patientDoctorDTO1.getPatientId());
 
             localQueue.getTickets().put(patientDoctorDTO1.getPatientId(), LocalQueue.LOCAL_QUEUE_SIZE-1);
+
+            localQueue.getAssignedDoctor().put(patientDoctorDTO1.getPatientId(), patientDoctorDTO.getDoctorId());
 
             return ResponseEntity.ok(true);
         } catch (Exception e) {
