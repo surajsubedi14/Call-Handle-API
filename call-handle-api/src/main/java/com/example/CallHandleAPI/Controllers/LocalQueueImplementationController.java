@@ -2,6 +2,7 @@ package com.example.CallHandleAPI.Controllers;
 
 import com.example.CallHandleAPI.DTO.LocalQueue;
 import com.example.CallHandleAPI.DTO.PatientDoctorDTO;
+import com.example.CallHandleAPI.DTO.PatientRemoveDTO;
 import com.example.CallHandleAPI.Models.Patient;
 import com.example.CallHandleAPI.Services.DoctorServices;
 import com.example.CallHandleAPI.Services.PatientServices;
@@ -252,7 +253,7 @@ public class LocalQueueImplementationController {
     }
 
     @PostMapping(value = "/remove")
-    public ResponseEntity<?> RemovePatient(@RequestBody PatientDoctorDTO patientDoctor) {
+    public ResponseEntity<?> RemovePatient(@RequestBody PatientRemoveDTO patientDoctor) {
         try {
             if(patientDoctor.getDoctorId() == null) {
                 return ResponseEntity.badRequest().body("No doctor given");
@@ -261,6 +262,7 @@ public class LocalQueueImplementationController {
 
             //Remove patient from queue
             Long patientId = localQueue.getLocalQueue().get(doctorId).remove(0);
+            patientDoctor.setPatientId(patientId);
 
             if(patientId != 0) {
                 //Remove his ticket
@@ -285,6 +287,7 @@ public class LocalQueueImplementationController {
                 }
 
                 messagingTemplate.convertAndSend("/topic/next-patients/" + patientDoctor.getDoctorId(), localQueue.getLocalQueue().get(patientDoctor.getDoctorId()));
+                messagingTemplate.convertAndSend("/topic/get-prescription-request/" + patientDoctor.getDoctorId(), patientDoctor);
 
                 return ResponseEntity.ok(true);
             }
