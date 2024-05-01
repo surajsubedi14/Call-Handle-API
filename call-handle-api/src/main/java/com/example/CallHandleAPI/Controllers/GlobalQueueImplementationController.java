@@ -4,6 +4,7 @@ import com.example.CallHandleAPI.DTO.GlobalQueue;
 import com.example.CallHandleAPI.DTO.PatientDoctorDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -11,13 +12,20 @@ import java.util.List;
 import java.util.Objects;
 
 @RestController
+@CrossOrigin
 @RequestMapping("/global")
 public class GlobalQueueImplementationController {
+
+    private List<Long> exitedDoctors;
 
     private final GlobalQueue globalQueue;
 
     @Autowired
+    private SimpMessagingTemplate messagingTemplate;
+
+    @Autowired
     public GlobalQueueImplementationController(GlobalQueue globalQueue) {
+        this.exitedDoctors = new ArrayList<>();
         this.globalQueue = globalQueue;
     }
 
@@ -127,6 +135,10 @@ public class GlobalQueueImplementationController {
             return new PatientDoctorDTO();
         }
 
+        if(exitedDoctors.contains(patientDoctor.getDoctorId())) {
+            return new PatientDoctorDTO();
+        }
+
         PatientDoctorDTO patientDoctorDTO = null;
         for(int i=0; i<globalQueue.getGlobalQueue().size(); i++) {
             if(globalQueue.getGlobalQueue().get(i).getDoctorId() == null || Objects.equals(globalQueue.getGlobalQueue().get(i).getDoctorId(), doctorId)) {
@@ -142,5 +154,29 @@ public class GlobalQueueImplementationController {
         globalQueue.getTickets().remove(patientDoctorDTO.getPatientId());
 
         return globalQueue.getGlobalQueue().remove(globalQueue.getGlobalQueue().indexOf(patientDoctorDTO));
+    }
+
+    @PostMapping("/stop-call")
+    public ResponseEntity<?> StopAssigningCall(@RequestBody PatientDoctorDTO patientDoctorDTO) {
+        try {
+            if (patientDoctorDTO.getDoctorId() == null) {
+                return ResponseEntity.ok("No doctor given");
+            }
+            exitedDoctors.add(patientDoctorDTO.getDoctorId());
+            List<PatientDoctorDTO> toBeDeleted = new ArrayList<>();
+            List<Long> tickets = new ArrayList<>();
+            for (PatientDoctorDTO pDDTO : globalQueue.getGlobalQueue()) {
+                if (Objects.equals(pDDTO.getDoctorId(), patientDoctorDTO.getDoctorId())) {
+                    toBeDeleted.add(pDDTO);
+                    tickets.add(pDDTO.getPatientId());
+                    messagingTemplate.convertAndSend("/topic/doctor-exited/" + pDDTO.getPatientId(), pDDTO.getPatientId());
+                }
+            }
+            globalQueue.getGlobalQueue().removeAll(toBeDeleted);
+            globalQueue.getTickets().removeAll(tickets);
+            return ResponseEntity.ok(true);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Internal Server Error: " + e.getMessage());
+        }
     }
 }
