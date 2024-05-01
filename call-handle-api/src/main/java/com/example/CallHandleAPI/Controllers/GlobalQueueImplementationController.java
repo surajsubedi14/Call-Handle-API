@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Objects;
 
 @RestController
+@CrossOrigin
 @RequestMapping("/global")
 public class GlobalQueueImplementationController {
 
