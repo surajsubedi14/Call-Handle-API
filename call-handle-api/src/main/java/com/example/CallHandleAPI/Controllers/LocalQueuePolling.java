@@ -71,5 +71,10 @@ public class LocalQueuePolling {
         simpMessagingTemplate.convertAndSend("/topic/get-consent-reply/" + doctorId, consent);
     }
 
+    @MessageMapping("/monitor-start/{doctorId}")
+    public void SendMonitorSituation(@DestinationVariable String doctorId) {
+        simpMessagingTemplate.convertAndSend("/topic/senior-monitor/" + doctorId, doctorId);
+    }
+
 
 }
